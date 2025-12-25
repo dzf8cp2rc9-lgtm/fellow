@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fellowship: The Hidden Role Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lato:wght@300;400;700&display=swap');
+        
+        body { 
+            font-family: 'Lato', sans-serif; 
+            background-color: #1e1b4b;
+            background-image: radial-gradient(circle at 50% 0%, #312e81 0%, #1e1b4b 100%);
+            color: #fefce8;
+        }
+
+        h1, h2, h3, .font-title { font-family: 'Cinzel', serif; }
+        
+        .card-panel {
+            background: rgba(30, 27, 75, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .gold-glow { text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); }
+        
+        .stars {
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 10;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1e1b4b; }
+        ::-webkit-scrollbar-thumb { background: #d97706; border-radius: 3px; }
+
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 overflow-hidden relative">
+
+    <!-- Ambient background effects -->
+    <div class="stars"></div>
+    <div class="fixed inset-0 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-30"></div>
+    
+    <div class="w-full max-w-md card-panel rounded-xl overflow-hidden relative z-20 fade-in border-t-4 border-amber-500">
+        
+        <!-- Error Toast -->
+        <div id="toast" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-900 border border-red-400 text-white px-6 py-3 rounded shadow-xl text-sm font-bold opacity-0 transition-opacity duration-300 pointer-events-none z-50 uppercase tracking-widest font-title">
+            <i class="fas fa-exclamation-circle mr-2"></i> Alert
+        </div>
+
+        <!-- HEADER -->
+        <div class="bg-indigo-950/80 p-6 text-center border-b border-amber-500/30 relative">
+            <div class="text-amber-500 text-3xl mb-1"><i class="fas fa-dove"></i></div>
+            <h1 class="text-2xl font-black tracking-widest text-amber-100 gold-glow">
+                FELLOWSHIP
+            </h1>
+            <div class="text-[10px] text-amber-500/70 uppercase tracking-[0.3em] mt-2">A Game of Deduction</div>
+        </div>
+
+        <!-- PANE 1: SETUP -->
+        <div id="pane-setup" class="p-6 space-y-6 relative z-30">
+            
+            <!-- Player Input -->
+            <div>
+                <label class="block text-amber-200/70 text-xs uppercase font-bold tracking-widest mb-2 font-title">
+                    <i class="fas fa-users text-xs mr-1"></i> The Brethren
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="player-input" class="flex-1 bg-indigo-900/50 border border-indigo-700 rounded px-4 py-3 text-amber-50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none placeholder-indigo-400/50 transition-all" placeholder="Enter name..." onkeypress="handleEnter(event)">
+                    <button onclick="addPlayer()" class="bg-amber-600 hover:bg-amber-500 text-white px-5 rounded font-bold transition shadow-lg active:scale-95 group border border-amber-400">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Player List -->
+            <div id="player-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                <div class="text-indigo-300 text-center text-sm italic py-4 border border-dashed border-indigo-700/50 bg-indigo-900/20 rounded">
+                    Add players to begin... (Min 3)
+                </div>
+            </div>
+
+            <!-- Category Select -->
+            <div>
+                <label class="block text-amber-200/70 text-xs uppercase font-bold tracking-widest mb-2 font-title">
+                    <i class="fas fa-book-open text-xs mr-1"></i> The Topic
+                </label>
+                <div class="relative">
+                    <select id="category-select" onchange="toggleCustomInput()" class="w-full bg-indigo-900/50 border border-indigo-700 rounded px-4 py-3 text-amber-50 focus:border-amber-500 outline-none appearance-none cursor-pointer">
+                        <option value="random">🎲 Random Selection</option>
+                        <option value="BibleHeroes">👑 Bible Heroes</option>
+                        <option value="Places">🌍 Biblical Places</option>
+                        <option value="Church">⛪ Church Items</option>
+                        <option value="Books">📜 Books of Bible</option>
+                        <option value="Events">⚡ Major Events</option>
+                        <option value="Fruits">🍇 Fruits of Spirit</option>
+                        <option value="Custom">✏️ Custom Topic</option>
+                    </select>
+                    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 text-amber-500 pointer-events-none">
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom Input (Hidden by default) -->
+            <div id="custom-input-container" class="hidden space-y-3 p-4 bg-indigo-900/30 border-l-2 border-amber-500 rounded-r">
+                <input type="text" id="custom-cat" placeholder="Category Name" class="w-full bg-indigo-950 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-amber-500 text-white outline-none">
+                <input type="text" id="custom-word" placeholder="Secret Word" class="w-full bg-indigo-950 border border-indigo-700 rounded px-3 py-2 text-sm focus:border-amber-500 text-white outline-none">
+            </div>
+
+            <!-- Clue Toggle -->
+            <div class="flex items-center justify-center gap-3 bg-indigo-900/30 p-3 rounded border border-indigo-700/50">
+                <input type="checkbox" id="clue-toggle" class="w-5 h-5 accent-amber-600 rounded cursor-pointer border-indigo-500 bg-indigo-900">
+                <label for="clue-toggle" class="text-amber-100/80 text-sm font-title cursor-pointer select-none">
+                    Allow Hints for the Wolf?
+                </label>
+            </div>
+
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-title font-bold py-4 rounded shadow-lg shadow-amber-900/50 transition-all transform hover:-translate-y-0.5 uppercase tracking-wider border-t border-amber-400/30">
+                Begin Fellowship
+            </button>
+        </div>
+
+        <!-- PANE 2: PASS DEVICE -->
+        <div id="pane-pass" class="hidden p-8 text-center space-y-8 min-h-[420px] flex flex-col justify-center items-center z-30 relative">
+            <div class="text-amber-500/70 uppercase tracking-[0.2em] text-xs font-title">Pass device to</div>
+            
+            <div class="relative w-full">
+                <div class="absolute inset-0 bg-amber-500/10 blur-xl rounded-full"></div>
+                <h2 id="pass-name" class="relative text-4xl font-black text-amber-100 break-words font-title gold-glow">...</h2>
+            </div>
+            
+            <div class="text-6xl text-amber-600 animate-pulse">
+                <i class="fas fa-scroll"></i>
+            </div>
+            
+            <button onclick="revealRole()" class="w-full bg-transparent border-2 border-amber-600 hover:bg-amber-600/20 text-amber-100 font-title font-bold py-4 rounded transition-all mt-auto uppercase tracking-wider">
+                <i class="fas fa-eye mr-2"></i> Reveal Role
+            </button>
+        </div>
+
+        <!-- PANE 3: REVEAL -->
+        <div id="pane-reveal" class="hidden p-8 text-center space-y-6 min-h-[420px] flex flex-col justify-center z-30 relative">
+            <div class="text-amber-500/70 uppercase tracking-[0.2em] text-xs font-title">Your Role</div>
+            
+            <div id="identity-box" class="border border-amber-500/30 p-8 bg-indigo-900/50 shadow-inner rounded relative overflow-hidden group">
+                <!-- Decorative corners -->
+                <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-amber-500"></div>
+                <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-amber-500"></div>
+                <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-amber-500"></div>
+                <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-amber-500"></div>
+                
+                <h2 id="role-text" class="text-3xl font-black text-white font-title">...</h2>
+                <div class="h-px w-1/2 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent mx-auto my-4"></div>
+                <p id="role-sub" class="text-lg text-indigo-100">...</p>
+            </div>
+
+            <div class="flex-1"></div>
+
+            <button onclick="nextPlayer()" class="w-full bg-indigo-800 hover:bg-indigo-700 text-indigo-100 font-title font-bold py-4 rounded border border-indigo-600 transition-all uppercase tracking-wider shadow-lg">
+                Hide & Pass
+            </button>
+        </div>
+
+        <!-- PANE 4: GAMEPLAY -->
+        <div id="pane-gameplay" class="hidden p-6 space-y-6 text-center z-30 relative">
+            <div class="space-y-2">
+                <p class="text-amber-500/70 text-[10px] uppercase tracking-[0.4em] font-title">Current Topic</p>
+                <h2 id="game-cat-display" class="text-3xl font-black text-amber-100 gold-glow font-title">...</h2>
+            </div>
+            
+            <div class="h-px bg-amber-500/30 w-full"></div>
+
+            <div class="bg-indigo-900/40 border border-indigo-700 p-5 text-left space-y-4 relative rounded">
+                <h3 class="font-bold text-amber-200 uppercase tracking-widest text-xs border-b border-indigo-700 pb-2 mb-2">
+                    <i class="fas fa-info-circle mr-2"></i> Instructions
+                </h3>
+                <ol class="text-sm text-indigo-200 space-y-3 list-decimal list-inside">
+                    <li>Start with <span class="text-amber-100 font-bold">Player 1</span>.</li>
+                    <li>Go <span class="text-amber-100">Clockwise</span>.</li>
+                    <li>Say <span class="text-amber-100">one word</span> related to the topic.</li>
+                    <li>Find the <span class="text-red-400 font-bold">Wolf in Sheep's Clothing</span>.</li>
+                </ol>
+            </div>
+
+            <div id="first-player-msg" class="text-amber-400 text-sm font-bold font-title tracking-wider border border-amber-500/30 bg-amber-900/20 py-2 px-6 rounded-full inline-block">
+                <!-- Injected via JS -->
+            </div>
+
+            <button onclick="resetGame()" class="w-full bg-indigo-800 hover:bg-indigo-700 text-amber-500 font-title font-bold py-4 rounded border border-indigo-600 transition-all mt-4 uppercase">
+                <i class="fas fa-redo mr-2"></i> New Round
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        const words = {
+            "BibleHeroes": ["Moses", "David", "Esther", "Paul", "Peter", "Noah", "Abraham", "Daniel", "Jonah", "Elijah", "Mary", "Joseph"],
+            "Places": ["Jerusalem", "Bethlehem", "Eden", "Heaven", "Egypt", "Nazareth", "Jericho", "Red Sea", "The Ark", "Mount Sinai"],
+            "Church": ["Bible", "Cross", "Altar", "Pew", "Hymnal", "Choir", "Communion", "Offering", "Pulpit", "Candle", "Baptism"],
+            "Books": ["Genesis", "Psalms", "Proverbs", "Matthew", "John", "Romans", "Revelation", "Exodus", "Acts", "Luke"],
+            "Events": ["Creation", "The Flood", "Christmas", "Easter", "Last Supper", "Pentecost", "Ascension", "Palm Sunday"],
+            "Fruits": ["Love", "Joy", "Peace", "Patience", "Kindness", "Goodness", "Faithfulness", "Gentleness", "Self-Control"]
+        };
+
+        // --- STATE ---
+        let players = [];
+        let currentPlayerIndex = 0;
+        let impostorIndex = -1;
+        let currentSecretWord = "";
+        let currentCategory = "";
+        let cluesEnabled = false;
+
+        // --- DOM ELEMENTS ---
+        const setupPane = document.getElementById('pane-setup');
+        const passPane = document.getElementById('pane-pass');
+        const revealPane = document.getElementById('pane-reveal');
+        const gameplayPane = document.getElementById('pane-gameplay');
+        const playerListEl = document.getElementById('player-list');
+        const toastEl = document.getElementById('toast');
+
+        // --- UTILS ---
+        function showToast(msg) {
+            toastEl.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${msg}`;
+            toastEl.classList.remove('opacity-0');
+            setTimeout(() => toastEl.classList.add('opacity-0'), 3000);
+        }
+
+        function showPane(pane) {
+            [setupPane, passPane, revealPane, gameplayPane].forEach(p => p.classList.add('hidden'));
+            pane.classList.remove('hidden');
+            pane.classList.add('fade-in');
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') addPlayer();
+        }
+
+        // --- LOGIC ---
+
+        function addPlayer() {
+            const input = document.getElementById("player-input");
+            const name = input.value.trim();
+            
+            if (!name) return;
+            if (players.includes(name)) {
+                showToast("Name already listed");
+                return;
+            }
+
+            players.push(name);
+            input.value = "";
+            renderPlayers();
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            renderPlayers();
+        }
+
+        function renderPlayers() {
+            playerListEl.innerHTML = "";
+            if (players.length === 0) {
+                playerListEl.innerHTML = '<div class="text-indigo-300 text-center text-sm italic py-4 border border-dashed border-indigo-700/50 bg-indigo-900/20 rounded">Add players to begin... (Min 3)</div>';
+                return;
+            }
+            players.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = "flex justify-between items-center bg-indigo-900/40 px-4 py-2 border border-indigo-700/50 rounded mb-2 group hover:bg-indigo-800/50 transition-colors";
+                div.innerHTML = `
+                    <span class="font-bold text-amber-50 tracking-wide">${p}</span>
+                    <button onclick="removePlayer(${i})" class="text-indigo-400 hover:text-red-400 w-6 h-6 flex items-center justify-center transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                playerListEl.appendChild(div);
+            });
+        }
+
+        function toggleCustomInput() {
+            const select = document.getElementById('category-select');
+            const customDiv = document.getElementById('custom-input-container');
+            if (select.value === 'Custom') {
+                customDiv.classList.remove('hidden');
+            } else {
+                customDiv.classList.add('hidden');
+            }
+        }
+
+        function startGame() {
+            if (players.length < 3) {
+                showToast("Need 3+ Brethren to play");
+                return;
+            }
+
+            // Capture Clue Setting
+            cluesEnabled = document.getElementById('clue-toggle').checked;
+
+            // Setup Game Data
+            const catSelect = document.getElementById("category-select").value;
+            
+            if (catSelect === 'Custom') {
+                const cCat = document.getElementById('custom-cat').value.trim();
+                const cWord = document.getElementById('custom-word').value.trim();
+                if(!cCat || !cWord) {
+                    showToast("Missing Category or Word");
+                    return;
+                }
+                currentCategory = cCat;
+                currentSecretWord = cWord;
+            } else {
+                const categories = Object.keys(words);
+                currentCategory = (catSelect === 'random') 
+                    ? categories[Math.floor(Math.random() * categories.length)]
+                    : catSelect;
+                const list = words[currentCategory];
+                currentSecretWord = list[Math.floor(Math.random() * list.length)];
+            }
+
+            // Assign Impostor
+            impostorIndex = Math.floor(Math.random() * players.length);
+            currentPlayerIndex = 0;
+
+            showPassScreen();
+        }
+
+        function showPassScreen() {
+            if (currentPlayerIndex >= players.length) {
+                // Game Start
+                // Fix: Map category keys to nice names if needed, or just uppercase
+                const displayCat = currentCategory.replace(/([A-Z])/g, ' $1').trim(); // simple camelCase to space
+                document.getElementById('game-cat-display').innerText = displayCat.toUpperCase();
+                document.getElementById('first-player-msg').innerText = `Start with: ${players[0]}`;
+                showPane(gameplayPane);
+                return;
+            }
+            
+            document.getElementById('pass-name').innerText = players[currentPlayerIndex];
+            showPane(passPane);
+        }
+
+        function revealRole() {
+            const isImpostor = (currentPlayerIndex === impostorIndex);
+            const roleText = document.getElementById('role-text');
+            const roleSub = document.getElementById('role-sub');
+            const box = document.getElementById('identity-box');
+
+            const displayCat = currentCategory.replace(/([A-Z])/g, ' $1').trim();
+
+            if (isImpostor) {
+                roleText.innerText = "IMPOSTOR";
+                roleText.className = "text-4xl font-black text-red-500 font-title mb-2 block tracking-widest";
+                
+                // Clue Logic
+                let clueHtml = "";
+                if (cluesEnabled && words[currentCategory]) {
+                    const safeWords = words[currentCategory]
+                        .filter(w => w !== currentSecretWord)
+                        .sort(() => 0.5 - Math.random())
+                        .slice(0, 3);
+                    
+                    if (safeWords.length > 0) {
+                        clueHtml = `
+                            <div class="mt-4 pt-4 border-t border-red-500/30">
+                                <p class="text-xs text-red-300 uppercase tracking-widest mb-2 font-bold">Deceptive Whispers (Safe Words)</p>
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    ${safeWords.map(w => `<span class="bg-red-950 text-red-200 px-2 py-1 rounded text-xs border border-red-500/30">${w}</span>`).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+
+                roleSub.innerHTML = `
+                    <div class="text-red-200 text-sm mt-4 font-bold">"Wolf in Sheep's Clothing"</div>
+                    <div class="mt-6 text-indigo-200">
+                        The Topic is:<br>
+                        <span class="text-white text-2xl font-bold tracking-widest uppercase border-b border-red-500/50 pb-1 inline-block mt-2">${displayCat}</span>
+                    </div>
+                    ${clueHtml}
+                `;
+                box.style.borderColor = "rgba(239, 68, 68, 0.4)";
+                box.style.background = "linear-gradient(to bottom right, rgba(153, 27, 27, 0.1), rgba(30, 27, 75, 0.8))";
+                
+                // Update corners to red
+                const corners = box.querySelectorAll('div');
+                corners.forEach(d => d.style.borderColor = "#ef4444");
+                
+            } else {
+                roleText.innerText = currentSecretWord.toUpperCase();
+                roleText.className = "text-3xl font-black text-amber-100 gold-glow font-title mb-2 block";
+                roleSub.innerHTML = `
+                    <div class="text-amber-500 text-sm mt-4 font-bold uppercase tracking-widest">Disciple</div>
+                    <div class="mt-6 text-indigo-200 text-sm">
+                        Offer a word related to the secret to prove your faith.
+                    </div>
+                `;
+                box.style.borderColor = "rgba(251, 191, 36, 0.4)";
+                box.style.background = "linear-gradient(to bottom right, rgba(180, 83, 9, 0.1), rgba(30, 27, 75, 0.8))";
+                
+                // Update corners to gold
+                const corners = box.querySelectorAll('div');
+                corners.forEach(d => d.style.borderColor = "#fbbf24");
+            }
+            
+            showPane(revealPane);
+        }
+
+        function nextPlayer() {
+            currentPlayerIndex++;
+            showPassScreen();
+        }
+
+        function resetGame() {
+            showPane(setupPane);
+        }
+
+    </script>
+</body>
+</html>
